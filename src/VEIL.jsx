@@ -17,10 +17,10 @@ const CW = 400, CH = 700;
 
 // ─── Config ──────────────────────────────────────────────────
 const CFG = {
-  GRAVITY: 0.65, JUMP: -15.5, DJUMP: -12.5,
+  GRAVITY: 0.55, JUMP: -15.5, DJUMP: -12.5,
   SPEED: 7.5, DASH_SPD: 20, DASH_DUR: 11, DASH_CD: 44,
   WALL_SLIDE: 1.5, WALL_JX: 9.0, WALL_JY: -14.5,
-  MAX_FALL: 18, COYOTE: 8, JBUF: 10,
+  MAX_FALL: 16, COYOTE: 8, JBUF: 10,
   PW: 18, PH: 30,
   STAM_MAX: 100, STAM_REGEN: 0.26, STAM_WALL: 0.48, STAM_DASH: 22,
   FLOW_MAX: 100, FLOW_J: 4, FLOW_WJ: 9, FLOW_D: 5, FLOW_DECAY: 0.13,
@@ -537,7 +537,6 @@ const TouchControls = ({keysRef}) => {
       </div>
       <div style={{display:"flex",gap:6,pointerEvents:"auto"}}>
         <div style={btnStyle(180,0,255)} onPointerDown={e=>{e.preventDefault();keysRef.current.dashPressed=true;}}>DASH</div>
-        <div style={btnStyle(0,245,255)} onPointerDown={e=>{e.preventDefault();keysRef.current.jumpPressed=true;}}>JUMP</div>
       </div>
     </div>
   );
@@ -548,9 +547,9 @@ const MainMenu = ({onStart}) => {
   const bgRef=useRef(null); const raf=useRef(null);
   const [phase,setPhase]=useState(0); const [sel,setSel]=useState(0);
   const chars=[
-    {name:"CYBER RUNNER",desc:"SPEED × PRECISION",col:"#00f5ff"},
-    {name:"VOID NINJA",desc:"STEALTH × POWER",col:"#aa00ff"},
-    {name:"AERO PILOT",desc:"FLIGHT × ENDURANCE",col:"#ff8c00"},
+    {name:"KGAETSII",desc:"SPEED × PRECISION",col:"#00f5ff"},
+    {name:"LESIAMO",desc:"STEALTH × POWER",col:"#aa00ff"},
+    {name:"MALOME",desc:"FLIGHT × ENDURANCE",col:"#ff8c00"},
   ];
   useEffect(()=>{
     const c=bgRef.current; if(!c) return;
@@ -638,7 +637,7 @@ const MainMenu = ({onStart}) => {
               onMouseEnter={e=>e.currentTarget.style.boxShadow="0 0 34px rgba(0,245,255,0.44)"}
               onMouseLeave={e=>e.currentTarget.style.boxShadow="0 0 14px rgba(0,245,255,0.14)"}
             >BEGIN ASCENT</button>
-            <button style={ghostBtn}>LEADERBOARD</button>
+            <button style={ghostBtn} onClick={()=>setPhase(2)}>LEADERBOARD</button>
             <button style={ghostBtn}>SETTINGS</button>
           </div>
         )}
@@ -656,8 +655,25 @@ const MainMenu = ({onStart}) => {
               ))}
             </div>
             <div style={{fontSize:8,color:"rgba(0,245,255,0.44)",letterSpacing:3,marginBottom:16}}>{chars[sel].desc}</div>
-            <button style={{...btn,border:`1px solid ${chars[sel].col}`,background:`${chars[sel].col}14`,boxShadow:`0 0 24px ${chars[sel].col}32`}} onClick={onStart}>ASCEND</button>
+            <button style={{...btn,border:`1px solid ${chars[sel].col}`,background:`${chars[sel].col}14`,boxShadow:`0 0 24px ${chars[sel].col}32`}} onClick={()=>onStart(sel)}>ASCEND</button>
             <button onClick={()=>setPhase(0)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.28)",fontSize:9,letterSpacing:2,cursor:"pointer",fontFamily:"'Courier New',monospace",marginTop:14,display:"block",margin:"14px auto 0"}}>← BACK</button>
+          </div>
+        )}
+        {phase===2&&(
+          <div>
+            <div style={{fontSize:10,letterSpacing:4,color:"rgba(0,245,255,0.8)",marginBottom:24}}>LEADERBOARD</div>
+            <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:24}}>
+              {chars.map((ch,i)=>{
+                 const scores = JSON.parse(localStorage.getItem('veil_scores') || '{"0":0,"1":0,"2":0}');
+                 return (
+                   <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${ch.col}44`,paddingBottom:8}}>
+                     <div style={{color:ch.col,fontSize:10,letterSpacing:2}}>{ch.name}</div>
+                     <div style={{color:"#fff",fontSize:14,letterSpacing:2}}>{String(scores[i]).padStart(6,"0")}</div>
+                   </div>
+                 )
+              })}
+            </div>
+            <button onClick={()=>setPhase(0)} style={{...ghostBtn,marginTop:14}}>← BACK</button>
           </div>
         )}
         <div style={{position:"absolute",bottom:-65,left:0,right:0,fontSize:8,color:"rgba(255,255,255,0.18)",letterSpacing:2,lineHeight:2.1}}>
@@ -696,6 +712,7 @@ export default function VEIL() {
   const [hud,setHud]=useState({alt:0,stam:CFG.STAM_MAX,flow:0,score:0,biome:BIOMES[0]});
   const [stats,setStats]=useState({alt:0,score:0});
   const [scale,setScale]=useState(1);
+  const activeOpRef=useRef(0);
   const gameRef=useRef(null);
   const rafRef=useRef(null);
   const keysRef=useRef({left:false,right:false,up:false,down:false,jumpPressed:false,dashPressed:false});
@@ -795,6 +812,12 @@ export default function VEIL() {
         ctx.fillRect(0,0,CW,CH);
         if(player.deadT>75&&gameRef.current?.running){
           gameRef.current.running=false;
+          const op = activeOpRef.current;
+          const scores = JSON.parse(localStorage.getItem('veil_scores') || '{"0":0,"1":0,"2":0}');
+          if(player.score > scores[op]) {
+            scores[op] = player.score;
+            localStorage.setItem('veil_scores', JSON.stringify(scores));
+          }
           setStats({alt:Math.max(0,player.maxAlt),score:player.score});
           setScreen("gameover"); return;
         }
@@ -814,9 +837,9 @@ export default function VEIL() {
   return (
     <div style={{width:"100vw",height:"100dvh",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",touchAction:"none"}}>
       <div style={{position:"relative",width:CW,height:CH,transform:`scale(${scale})`,transformOrigin:"center center",overflow:"hidden"}}>
-        <canvas ref={canvasRef} width={CW} height={CH} style={{display:"block",background:"#000",touchAction:"none"}}/>
+        <canvas ref={canvasRef} width={CW} height={CH} style={{display:"block",background:"#000",touchAction:"none"}} onPointerDown={(e)=>{keysRef.current.jumpPressed=true; e.preventDefault();}}/>
         {screen==="game"&&<><HUD alt={hud.alt} stam={hud.stam} flow={hud.flow} score={hud.score} biome={hud.biome}/><TouchControls keysRef={keysRef}/></>}
-        {screen==="menu"&&<MainMenu onStart={()=>setScreen("game")}/>}
+        {screen==="menu"&&<MainMenu onStart={(sel)=>{activeOpRef.current=sel; setScreen("game");}}/>}
         {screen==="gameover"&&<GameOver alt={stats.alt} score={stats.score} onRestart={()=>setScreen("game")} onMenu={()=>setScreen("menu")}/>}
       </div>
     </div>
