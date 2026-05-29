@@ -17,10 +17,10 @@ const CW = 400, CH = 700;
 
 // ─── Config ──────────────────────────────────────────────────
 const CFG = {
-  GRAVITY: 0.46, JUMP: -13.5, DJUMP: -11,
-  SPEED: 5.4, DASH_SPD: 15, DASH_DUR: 11, DASH_CD: 44,
-  WALL_SLIDE: 1.3, WALL_JX: 7.2, WALL_JY: -12.8,
-  MAX_FALL: 15, COYOTE: 8, JBUF: 10,
+  GRAVITY: 0.65, JUMP: -15.5, DJUMP: -12.5,
+  SPEED: 7.5, DASH_SPD: 20, DASH_DUR: 11, DASH_CD: 44,
+  WALL_SLIDE: 1.5, WALL_JX: 9.0, WALL_JY: -14.5,
+  MAX_FALL: 18, COYOTE: 8, JBUF: 10,
   PW: 18, PH: 30,
   STAM_MAX: 100, STAM_REGEN: 0.26, STAM_WALL: 0.48, STAM_DASH: 22,
   FLOW_MAX: 100, FLOW_J: 4, FLOW_WJ: 9, FLOW_D: 5, FLOW_DECAY: 0.13,
@@ -34,19 +34,19 @@ const BIOMES = [
     p:"#00f5ff", s:"#ff0080", a:"#aa00ff",
     sky:["#040012","#080025"], bc:["#060018","#090028","#040015"],
     wc:"#00f5ff", fog:"rgba(0,8,45,0.07)", weather:"rain" },
-  { id:1, name:"INDUSTRIAL SKY FORGE", alt:370,
+  { id:1, name:"INDUSTRIAL SKY FORGE", alt:150,
     p:"#ff8c00", s:"#ffcc00", a:"#ff4400",
     sky:["#0d0700","#1a0e00"], bc:["#160900","#200f00","#100600"],
     wc:"#ffaa00", fog:"rgba(55,18,0,0.06)", weather:"embers" },
-  { id:2, name:"STORM TOWERS", alt:880,
+  { id:2, name:"STORM TOWERS", alt:400,
     p:"#8844ff", s:"#00aaff", a:"#ff44cc",
     sky:["#04001e","#0b003c"], bc:["#070020","#0f0040","#050018"],
     wc:"#8844ff", fog:"rgba(28,0,80,0.08)", weather:"lightning" },
-  { id:3, name:"ORBITAL RUINS", alt:1750,
+  { id:3, name:"ORBITAL RUINS", alt:750,
     p:"#00ff88", s:"#ff4400", a:"#00ccff",
     sky:["#000c10","#00181e"], bc:["#001010","#001818","#000c0c"],
     wc:"#00ff88", fog:"rgba(0,22,18,0.05)", weather:"debris" },
-  { id:4, name:"FROZEN STRATOSPHERE", alt:2900,
+  { id:4, name:"FROZEN STRATOSPHERE", alt:1200,
     p:"#aaddff", s:"#ffffff", a:"#4488ff",
     sky:["#000916","#001028"], bc:["#000e1c","#001628","#000a14"],
     wc:"#aaddff", fog:"rgba(0,16,40,0.07)", weather:"snow" },
@@ -387,7 +387,7 @@ class Weather {
   constructor() { this.pts=[]; this.type="none"; this.lightT=0; this.lightA=0; }
   init(type) {
     this.type=type; this.pts=[];
-    const counts={rain:130,snow:65,embers:45,debris:28,lightning:0,none:0};
+    const counts={rain:250,snow:150,embers:100,debris:60,lightning:0,none:0};
     for (let i=0;i<(counts[type]||0);i++) this.spawn(true);
   }
   spawn(rnd=false) {
@@ -812,9 +812,9 @@ export default function VEIL() {
   },[screen,startGame]);
 
   return (
-    <div style={{width:"100vw",height:"100vh",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+    <div style={{width:"100vw",height:"100dvh",background:"#000",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",touchAction:"none"}}>
       <div style={{position:"relative",width:CW,height:CH,transform:`scale(${scale})`,transformOrigin:"center center",overflow:"hidden"}}>
-        <canvas ref={canvasRef} width={CW} height={CH} style={{display:"block",background:"#000"}}/>
+        <canvas ref={canvasRef} width={CW} height={CH} style={{display:"block",background:"#000",touchAction:"none"}}/>
         {screen==="game"&&<><HUD alt={hud.alt} stam={hud.stam} flow={hud.flow} score={hud.score} biome={hud.biome}/><TouchControls keysRef={keysRef}/></>}
         {screen==="menu"&&<MainMenu onStart={()=>setScreen("game")}/>}
         {screen==="gameover"&&<GameOver alt={stats.alt} score={stats.score} onRestart={()=>setScreen("game")} onMenu={()=>setScreen("menu")}/>}
